@@ -1,4 +1,4 @@
-# Kitchen Remedy App for Kids' Illnesses
+# HomeCure-Kids-App for Kids' Illnesses
 
 ## Description
 The **Kitchen Remedy App** is designed to help parents and caregivers find home remedies for common kids' illnesses using readily available kitchen ingredients. The app takes user inputs such as symptoms and available ingredients, then suggests soothing and easy-to-prepare remedies or recipes.
