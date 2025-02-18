@@ -6,12 +6,10 @@ The **Kitchen Remedy App** is designed to help parents and caregivers find home 
 ## Features
 - **Symptom-Based Search**: Users can enter symptoms (e.g., sore throat, cough, upset stomach) to receive remedy suggestions.
 - **Ingredient Matching**: The app suggests remedies based on the ingredients available at home.
-- **Customizable Recipes**: Users can adjust remedies based on ingredient availability.
 - **Interactive Guidance**: Step-by-step preparation instructions for each remedy.
 - **Educational Tips**: Provides additional information on natural healing properties of ingredients.
 
 ## Technology Stack
-- **Front-End**: React
 - **Back-End**: FastAPI
 - **Database**: PostgreSQL
 - **AI Integration**:
@@ -23,7 +21,6 @@ The **Kitchen Remedy App** is designed to help parents and caregivers find home 
 ## Getting Started
 ### Prerequisites
 - Python (for FastAPI backend)
-- Node.js (for React frontend)
 - PostgreSQL (database setup)
 
 ### Installation
@@ -40,12 +37,7 @@ The **Kitchen Remedy App** is designed to help parents and caregivers find home 
    pip install -r requirements.txt
    uvicorn main:app --reload
    ```
-3. **Set up the frontend**:
-   ```bash
-   cd ../frontend
-   npm install
-   npm start
-   ```
+
 
 ## Usage
 1. Enter symptoms and available ingredients.
