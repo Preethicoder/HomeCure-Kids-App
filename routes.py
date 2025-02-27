@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse
 from auth import hash_password, verify_password
 from database import get_db_connection
 from models import User, KidsProfile, Ingredients, KidsProfileSymptom
+from openai_client import generate_remedy_instructions
 
 router = APIRouter()
 
@@ -213,9 +214,12 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict =
             # Dynamically build the update query based on provided fields
         update_fields = []
         update_values = []
-
+        print(kid.allergies)
         # Check each field and add to the update query if provided
-        if kid.name:
+        print(f"kid_name:{kid.name}")
+        print(f"kid.allergies",type(kid.allergies))
+        if kid.name !="string" :
+            print(kid.name)
             update_fields.append("name = %s")
             update_values.append(kid.name)
         if kid.age != 0:
@@ -227,7 +231,8 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict =
         if kid.weight != 0:
             update_fields.append("weight = %s")
             update_values.append(kid.weight)
-        if kid.allergies:
+        if kid.allergies !="string":
+            print("inside kids_allergies")
             update_fields.append("allergies = %s")
             update_values.append(kid.allergies)
 
@@ -246,7 +251,7 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict =
         # Commit the changes to the database
         conn.commit()
         conn.close()
-        return {"message": "Symptom updated successfully",
+        return {"message": "Kids_profile updated successfully",
                 "kid_id": kid_id}
 
     except HTTPException as e:
@@ -442,7 +447,66 @@ async def logout(request: Request):
 
 
 # Home endpoint
-@router.get("/")
+@router.get("/kitchen_remedy/{kid_id}")
+async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)):
+    """
+        Retrieves the symptom for a given kid and suggests ingredients based on the symptom.
+
+        Args:
+            kid_id (int): The ID of the child whose symptom needs to be retrieved.
+            current_user (dict): The currently authenticated parent user, fetched using dependency injection.
+
+        Returns:
+            dict: A JSON object containing the kid's ID, symptom, and a list of suggested ingredients.
+
+        Raises:
+            HTTPException 403: If the user is not authorized to access the kid's profile.
+            HTTPException 404: If no symptom is found for the given kid.
+            HTTPException 500: If there is an internal server error.
+
+        Example Response:
+            {
+                "kid_id": 1,
+                "symptom": "Cough",
+                "ingredients": ["Honey", "Ginger", "Lemon"]
+            }
+        """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+
+        parent_id = current_user["id"]
+        cursor.execute("SELECT symptom_name FROM kids_profile WHERE id = %s and parent_id = %s", (kid_id, parent_id))
+        kid_symptom = cursor.fetchone()
+
+
+        symptom = kid_symptom["symptom_name"]
+        print(f"symptom::{symptom}")
+
+        # Fetch ingredients based on the symptom
+        cursor.execute("SELECT ingredient_name FROM ingredients WHERE is_available = true and parent_id = %s",
+                       (parent_id,))
+        ingredients = cursor.fetchall()
+        ingredients_list = [
+            ingredient["ingredient_name"] for ingredient in ingredients]  # Extract ingredients as a list
+        # Generate AI remedy instructions
+        remedy_instructions = generate_remedy_instructions(symptom, ingredients_list)
+        remedy_instructions = remedy_instructions.replace("\n", " ")
+        return {
+            "kid_id": kid_id,
+            "symptom": symptom,
+            "ingredients": ingredients_list,
+            "remedy_instructions":remedy_instructions
+
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def home():
     """
         Home endpoint that returns a welcome message.

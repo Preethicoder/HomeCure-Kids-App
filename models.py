@@ -5,6 +5,7 @@ It includes validation for user credentials, kids' health profiles, and ingredie
 """
 from typing import Optional
 from pydantic import BaseModel
+from pydantic import Field
 
 class User(BaseModel):
     """
@@ -30,7 +31,7 @@ class KidsProfile(BaseModel):
         This model represents the health and personal profile of a child,
         including name, age, height, weight, and allergies.
     """
-    name: str
+    name:str = Field(..., title="Child's Name", description="Full name of the child")  # Required
     age: int
     height: Optional[float] = None
     weight: Optional[float] = None
