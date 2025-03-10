@@ -14,7 +14,7 @@ The **HomeCure-Kids-App** is designed to help parents and caregivers find **home
 ✅ **Interactive Guidance**: Step-by-step preparation instructions for each remedy.  
 ✅ **Ingredients_to_buy**: If no ingredients matches or no available ingredients , the app suggest parent a list of items to buy.
 
-![Features](https://via.placeholder.com/600x300?text=App+Features)
+
 
 ---
 
@@ -25,7 +25,7 @@ The **HomeCure-Kids-App** is designed to help parents and caregivers find **home
 - 🤖 **Transformer-based models**: **GPT-4o-mini**, **Gemini 1.5-Flash**, **Groq LLaMA 3.3 70B Versatile** for remedy generation.
 
 
-![Tech Stack]((https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png))
+
 
 ---
 
@@ -59,7 +59,7 @@ uvicorn main:app --reload
 2️⃣ **Get recommended home remedies**.  
 3️⃣ **Follow the step-by-step instructions** to prepare the remedy.  
 
-![Usage](https://via.placeholder.com/600x300?text=How+to+Use+the+App)
+
 
 ---
 
