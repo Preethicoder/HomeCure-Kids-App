@@ -1,51 +1,77 @@
-# HomeCure-Kids-App for Kids' Illnesses
+# 🌿 HomeCure-Kids-App 🏡👶
 
-## Description
-The **Kitchen Remedy App** is designed to help parents and caregivers find home remedies for common kids' illnesses using readily available kitchen ingredients. The app takes user inputs such as symptoms and available ingredients, then suggests soothing and easy-to-prepare remedies or recipes.
+![HomeCure Logo](https://via.placeholder.com/600x200?text=HomeCure+Kids+App)  
 
-## Features
-- **Symptom-Based Search**: Users can enter symptoms (e.g., sore throat, cough, upset stomach) to receive remedy suggestions.
-- **Ingredient Matching**: The app suggests remedies based on the ingredients available at home.
-- **Interactive Guidance**: Step-by-step preparation instructions for each remedy.
-- **Educational Tips**: Provides additional information on natural healing properties of ingredients.
+## 📝 Description
+The **HomeCure-Kids-App** is designed to help parents and caregivers find **home remedies** for common kids' illnesses using readily available **kitchen ingredients**. The app takes user inputs such as **symptoms** and **available ingredients**, then suggests soothing and easy-to-prepare **remedies** or **recipes**.
 
-## Technology Stack
-- **Back-End**: FastAPI
-- **Database**: PostgreSQL
-- **AI Integration**:
-  - Transformer-based models (GPT or T5) for remedy generation.
-  - Dense Retriever or ElasticSearch for finding relevant remedies.
-  - Vector databases (Pinecone or Weaviate) for efficient retrieval.
-  - AI APIs: Hugging Face or OpenAI for retrieval-augmented generation (RAG).
+---
 
-## Getting Started
-### Prerequisites
-- Python (for FastAPI backend)
-- PostgreSQL (database setup)
+## ✨ Features
+✅ **Symptom-Based Search**: Enter symptoms (e.g., sore throat, cough, upset stomach) to receive remedy suggestions.  
+✅ **Ingredient Matching**: Find remedies based on ingredients available at home.  
+✅ **Interactive Guidance**: Step-by-step preparation instructions for each remedy.  
+✅ **Ingredients_to_buy**: If no ingredients matches or no available ingredients , the app suggest parent a list of items to buy.
 
-### Installation
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Preethicoder/HomeCure-Kids-App.git
-   cd HomeCure-Kids-App
-   ```
-2. **Set up the backend**:
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use venv\Scripts\activate
-   pip install -r requirements.txt
-   uvicorn main:app --reload
-   ```
+![Features](https://via.placeholder.com/600x300?text=App+Features)
+
+---
+
+## 🛠️ Technology Stack
+📌 **Back-End**: FastAPI  
+📌 **Database**: PostgreSQL  
+📌 **AI Integration**:
+- 🤖 **Transformer-based models**: **GPT-4o-mini**, **Gemini 1.5-Flash**, **Groq LLaMA 3.3 70B Versatile** for remedy generation.
 
 
-## Usage
-1. Enter symptoms and available ingredients.
-2. Get recommended home remedies.
-3. Follow the step-by-step instructions to prepare the remedy.
+![Tech Stack](https://via.placeholder.com/600x300?text=Technology+Stack)
 
-## Contribution
-Feel free to contribute! Submit pull requests or report issues to improve the app.
+---
 
-## Contact
-For any inquiries, reach out at [preethisivakumar2024@gmail.com]
+## 🚀 Getting Started
+
+### 📌 Prerequisites
+Ensure you have the following installed:
+- 🐍 **Python** (for FastAPI backend)
+- 🛢 **PostgreSQL** (for database setup)
+
+### 🔧 Installation
+#### 1️⃣ Clone the repository:
+```sh
+git clone https://github.com/Preethicoder/HomeCure-Kids-App.git
+cd HomeCure-Kids-App
+```
+
+#### 2️⃣ Set up the backend:
+```sh
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows, use venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+---
+
+## 📌 Usage
+1️⃣ **Enter symptoms** and **available ingredients**.  
+2️⃣ **Get recommended home remedies**.  
+3️⃣ **Follow the step-by-step instructions** to prepare the remedy.  
+
+![Usage](https://via.placeholder.com/600x300?text=How+to+Use+the+App)
+
+---
+
+## 💡 Contribution
+We welcome contributions! If you'd like to improve the app, feel free to:
+- 🔹 Submit a **pull request**
+- 🔹 Report **issues** or suggest **features**
+
+---
+
+## 📬 Contact
+For any inquiries, reach out at 📧 **[preethisivakumar2024@gmail.com](mailto:preethisivakumar2024@gmail.com)**.
+
+---
+
+**Made with ❤️ for parents and caregivers!** 🌸👨‍👩‍👧‍👦
