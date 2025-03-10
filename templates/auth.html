@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login / Signup</title>
+        <link rel="stylesheet" href="static/styles.css">
+    </head>
+    <body>
+
+
+<h1>Mama's Kitchen Remedies for Kids</h1>
+
+    <div class="container">
+        <h2 id="form-title">Login</h2>
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <p class="toggle" onclick="toggleForm()">Don't have an account? Sign up</p>
+    </div>
+
+    <script>
+        async function handleAuth(event) {
+        console.log("inside handleAuth")
+        event.preventDefault();  // Prevent the form from refreshing the page
+
+        const formTitle = document.getElementById("form-title").innerText;
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const endpoint = formTitle === "Sign Up" ? "/signup" : "/login";  // Choose endpoint
+        console.log("username",username)
+        const requestData = {
+            username: username,
+            password: password
+        };
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);  // Show success message
+            } else {
+                alert("Error: " + result.detail);  // Show error message
+            }
+        } catch (error) {
+            console.error("Request failed", error);
+            alert("Something went wrong. Please try again.");
+        }
+    }
+
+        function toggleForm() {
+            const formTitle = document.getElementById("form-title");
+            const formButton = document.querySelector("button");
+            const toggleText = document.querySelector(".toggle");
+
+            if (formTitle.innerText === "Login") {
+                formTitle.innerText = "Sign Up";
+                formButton.innerText = "Sign Up";
+                toggleText.innerText = "Already have an account? Login";
+            } else {
+                formTitle.innerText = "Login";
+                formButton.innerText = "Login";
+                toggleText.innerText = "Don't have an account? Sign up";
+            }
+        }
+        document.getElementById("auth-form").addEventListener("submit", handleAuth);
+    </script>
+</body>
+</html>

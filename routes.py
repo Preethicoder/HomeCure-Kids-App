@@ -10,11 +10,15 @@ secure session-based authentication for users.
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+import json
 
 from auth import hash_password, verify_password
-from database import get_db_connection
-from models import User, KidsProfile, Ingredients, KidsProfileSymptom
-from openai_client import generate_remedy_instructions
+from config import templates
+from database.database import get_db_connection
+
+
+from database.models import User, KidsProfile, Ingredients, KidsProfileSymptom, LoginUser
+from ai_clients.openai_client import generate_remedy_instructions
 
 router = APIRouter()
 
@@ -53,7 +57,7 @@ def sign_up(user: User):
 
 # Login endpoint that creates session-based authentication
 @router.post("/login")
-async def login(request: Request, username: str, password: str):
+async def login(request: Request, login_user: LoginUser):
     """
         Endpoint for logging in a user.
         This endpoint verifies the username and password, and if valid,
@@ -61,21 +65,23 @@ async def login(request: Request, username: str, password: str):
 
         Args:
             request (Request): The request object containing session data.
-            username (str): The username provided by the user.
-            password (str): The password provided by the user.
+
 
         Returns:
             JSONResponse: Success message if login is successful,
              otherwise an error message.
+             :param request:
+             :param login_user:
     """
+    print("request",request)
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+    cursor.execute("SELECT * FROM users WHERE username=%s", (login_user.username,))
     db_user = cursor.fetchone()
     conn.close()
 
-    if not db_user or not verify_password(password, db_user["password"]):
+    if not db_user or not verify_password(login_user.password, db_user["password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Incorrect username or password")
 
@@ -202,7 +208,8 @@ async def get_kids(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/update_kid_profile/{kid_id}")
-async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict = Depends(get_current_user)):
+async def update_kidsprofile(kid_id: int, kid: KidsProfile,
+                             current_user: dict = Depends(get_current_user)):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -216,9 +223,7 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict =
         update_values = []
         print(kid.allergies)
         # Check each field and add to the update query if provided
-        print(f"kid_name:{kid.name}")
-        print(f"kid.allergies",type(kid.allergies))
-        if kid.name !="string" :
+        if kid.name != "string":
             print(kid.name)
             update_fields.append("name = %s")
             update_values.append(kid.name)
@@ -231,7 +236,7 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile, current_user: dict =
         if kid.weight != 0:
             update_fields.append("weight = %s")
             update_values.append(kid.weight)
-        if kid.allergies !="string":
+        if kid.allergies != "string":
             print("inside kids_allergies")
             update_fields.append("allergies = %s")
             update_values.append(kid.allergies)
@@ -306,7 +311,7 @@ async def get_ingredients(current_user: dict = Depends(get_current_user)):
 
         Args:
             ingredients (Ingredients): The ingredient details to be added.
-            current_user (dict): The authenticated user (parent).
+            current_use r (dict): The authenticated user (parent).
 
         Returns:
             JSONResponse: Success message if ingredients are added, otherwise an error message.
@@ -427,25 +432,28 @@ async def update_kid_symptom(kid_id: int, symptom: KidsProfileSymptom,
         print(f"Database error: {e}")
         raise HTTPException(status_code=500,
                             detail="Database error occurred") from e
-
-
-# Endpoint to logout and clear session
-@router.post("/logout")
-async def logout(request: Request):
-    """
-        Endpoint to logout the current user by clearing the session.
-        This ensures the user is logged out and their session is terminated.
-
-        Args:
-            request (Request): The request object to clear the session data.
-
-        Returns:
-            JSONResponse: Success message indicating the user has logged out.
-    """
-    request.session.clear()  # Clear session data
-    return JSONResponse(content={"message": "Logged out successfully"})
-
-
+def get_existing_remedy(symptom_name,ingredients):
+    try:
+        conn= get_db_connection()
+        cursor = conn.cursor()
+        search_query = """
+             SELECT remedy_name, steps, symptom, ingredients
+             FROM remedies
+             WHERE symptom = %s
+             AND 
+             (SELECT array_agg(value ORDER BY value) FROM jsonb_array_elements_text(ingredients::jsonb)) = 
+             (SELECT array_agg(value ORDER BY value) FROM jsonb_array_elements_text(%s::jsonb))
+              LIMIT 1;
+              """
+        cursor.execute(search_query, (symptom_name, json.dumps(sorted(ingredients))))
+        result = cursor.fetchone()
+        if result:
+            return result
+        return None
+    except Exception as e:
+        print(f"Database error: {e}")
+        raise HTTPException(status_code=500,
+                            detail="Database error occurred") from e
 # Home endpoint
 @router.get("/kitchen_remedy/{kid_id}")
 async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)):
@@ -479,26 +487,87 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
         cursor.execute("SELECT symptom_name FROM kids_profile WHERE id = %s and parent_id = %s", (kid_id, parent_id))
         kid_symptom = cursor.fetchone()
 
-
         symptom = kid_symptom["symptom_name"]
         print(f"symptom::{symptom}")
 
         # Fetch ingredients based on the symptom
-        cursor.execute("SELECT ingredient_name FROM ingredients WHERE is_available = true and parent_id = %s",
+        cursor.execute("SELECT ingredient_name "
+                       "FROM ingredients WHERE is_available = true "
+                       "and parent_id = %s",
                        (parent_id,))
         ingredients = cursor.fetchall()
         ingredients_list = [
             ingredient["ingredient_name"] for ingredient in ingredients]  # Extract ingredients as a list
-        # Generate AI remedy instructions
-        remedy_instructions = generate_remedy_instructions(symptom, ingredients_list)
-        remedy_instructions = remedy_instructions.replace("\n", " ")
-        return {
+
+        print("Remedy Information:")
+        print(f"  Kid ID: {kid_id}")
+        print(f"  Symptom: {symptom}")
+        print(f"  Ingredients: {ingredients_list}")
+
+        result = get_existing_remedy(symptom,ingredients_list)
+
+        if result:
+            print(f"result:{result}")
+            print(f"result[0]::{result['remedy_name']}")
+            print(f"result[1]::{result['steps']}")
+            insert_query = """
+                                        INSERT INTO remedies (kid_id, parent_id, symptom, remedy_name, steps, ingredients)
+                                        VALUES (%s, %s, %s, %s, %s, %s)
+                                    """
+            cursor.execute(insert_query, (
+                kid_id,
+                parent_id,
+                symptom,
+                result['remedy_name'],
+                json.dumps(result['steps']),
+                json.dumps(ingredients_list)
+            ))
+            conn.commit()
+            remedy_instructions= {
             "kid_id": kid_id,
             "symptom": symptom,
             "ingredients": ingredients_list,
-            "remedy_instructions":remedy_instructions
+         "remedy_name": result["remedy_name"],
+           "steps": result["steps"]
+    }
+            return remedy_instructions
+        else:
+            # Generate AI remedy instructions
+            remedy_instructions = generate_remedy_instructions(symptom, ingredients_list)
+            print("remedy_instructions",remedy_instructions)
+            ##remedy_instructions = remedy_instructions.replace("\n", " ")
+        if hasattr(remedy_instructions, 'remedy_name') and hasattr(remedy_instructions,
+                                                                   'steps'):  # check if remedy instruction is a pydantic object
+                print(f"   inside Remedy Name: {remedy_instructions.remedy_name}")
+                print(f"    Steps:{remedy_instructions.steps}")
+                insert_query = """
+                                INSERT INTO remedies (kid_id, parent_id, symptom, remedy_name, steps, ingredients)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """
+                cursor.execute(insert_query,(
+                             kid_id,
+                             parent_id,
+                             symptom,
+                             remedy_instructions.remedy_name,
+                             json.dumps(remedy_instructions.steps),
+                            json.dumps(ingredients_list)
+                             ))
+                conn.commit()
+                print("returned::::",remedy_instructions)
+
+                return {
+            "kid_id": kid_id,
+            "symptom": symptom,
+            "ingredients": ingredients_list,
+            "remedy_instructions": remedy_instructions
 
         }
+        else:
+            if isinstance(remedy_instructions, str):
+                return {
+                    "kid_id": kid_id,
+                    "symptom": symptom,
+                    "Ingreidents_to_Buy": remedy_instructions}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -507,11 +576,28 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
         conn.close()
 
 
-def home():
+# Endpoint to logout and clear session
+@router.post("/logout")
+async def logout(request: Request):
+    """
+        Endpoint to logout the current user by clearing the session.
+        This ensures the user is logged out and their session is terminated.
+
+        Args:
+            request (Request): The request object to clear the session data.
+
+        Returns:
+            JSONResponse: Success message indicating the user has logged out.
+    """
+    request.session.clear()  # Clear session data
+    return JSONResponse(content={"message": "Logged out successfully"})
+
+@router.get("/")
+async def home(request: Request):
     """
         Home endpoint that returns a welcome message.
 
         Returns:
             dict: A simple welcome message.
         """
-    return {"message": "Welcome to the Home Remedy App for Kids"}
+    return templates.TemplateResponse("auth.html", {"request": request})

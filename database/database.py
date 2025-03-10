@@ -6,10 +6,11 @@ for users, kids' profiles, and ingredients if they do not already exist.
 """
 
 import os
+
 import psycopg2
-from psycopg2.extras import RealDictCursor
-from fastapi import HTTPException
 from dotenv import load_dotenv
+from fastapi import HTTPException
+from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
@@ -60,8 +61,20 @@ def init_db():
         )
     """)
 
+
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS kids_profile (
+    CREATE TABLE IF NOT EXISTS ingredients(
+           id SERIAL PRIMARY KEY,
+           ingredient_name VARCHAR(50) NOT NULL,
+           is_available BOOLEAN,
+           parent_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+    )
+    """)
+
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS  kids_profile (
             id SERIAL PRIMARY KEY,
             name VARCHAR(50) NOT NULL,
             age INTEGER NOT NULL,
@@ -70,17 +83,25 @@ def init_db():
             allergies TEXT,
             symptom_name TEXT,
             parent_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
-        )
+        );
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS ingredients(
-           id SERIAL PRIMARY KEY,
-           ingredient_name VARCHAR(50) NOT NULL,
-           is_available BOOLEAN,
-           parent_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE 
-    )
+        CREATE TABLE IF NOT EXISTS  remedies (
+            id SERIAL PRIMARY KEY,
+            kid_id INTEGER NOT NULL REFERENCES kids_profile(id),
+            parent_id INTEGER NOT NULL REFERENCES users(id),
+            symptom TEXT NOT NULL,
+            remedy_name TEXT NOT NULL,
+            steps JSON NOT NULL,
+            ingredients JSON NOT NULL
+        );
     """)
+
+
+
+
+
     print("Table creation query executed.")
     conn.commit()
     conn.close()
