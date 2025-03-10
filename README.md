@@ -25,7 +25,7 @@ The **HomeCure-Kids-App** is designed to help parents and caregivers find **home
 - 🤖 **Transformer-based models**: **GPT-4o-mini**, **Gemini 1.5-Flash**, **Groq LLaMA 3.3 70B Versatile** for remedy generation.
 
 
-![Tech Stack](https://via.placeholder.com/600x300?text=Technology+Stack)
+![Tech Stack]((https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png))
 
 ---
 
