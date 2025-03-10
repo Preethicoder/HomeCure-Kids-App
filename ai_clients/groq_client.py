@@ -4,18 +4,20 @@ import re
 from typing import List, Optional
 
 import groq
-from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
+from pydantic import BaseModel, ValidationError
 
 load_dotenv()
 
 # Configure the Groq API
 client = groq.Groq(api_key=os.getenv("GROQ_API_KEY"))
 
+
 # Define the structured response format using Pydantic
 class RemedyInstruction(BaseModel):
     remedy_name: str
     steps: Optional[List[str]] = None  # List of strings
+
 
 def clean_and_parse_response(response_text: str):
     """
@@ -51,6 +53,7 @@ def clean_and_parse_response(response_text: str):
         print(f"Unexpected error: {e}")
         return None
 
+
 def generate_remedy_instructions(symptom: str, available_ingredients: list, allergies: list = None):
     """
     Calls Groq API to generate kitchen remedy instructions based on the given symptom and available ingredients.
@@ -66,28 +69,26 @@ def generate_remedy_instructions(symptom: str, available_ingredients: list, alle
         chat_input = [
             {
                 "role": "system",
-                "content":"""You are a professional medical assistant specializing in home remedies for children's common illnesses.
-                                      Provide short, step-by-step instructions in a structured JSON response format using ONLY the available ingredients and include no extra ingredients .
-                                      If any of the available ingredients require caution (such as honey for children under 1 year old), you must explicitly include a caution message in the steps, clearly noting why the ingredient should be avoided or used with care. 
-                                      For example: 'Caution: Honey should not be given to children under 1 year old due to the risk of botulism.'
-                                      Example: 
-                      - Step 1: Mix warm water with honey.
-                      - Step 2: Add lemon juice and stir well.
-                      - Step 3: Drink slowly to soothe the throat.
-                      - **Step 4 (Caution)**: Honey should not be given to children under 1 year old due to the risk of botulism.
+                "content": """You are a professional medical assistant specializing in home remedies for children's common illnesses.
+                              Provide short, step-by-step instructions in a structured JSON response format using ONLY the available ingredients and include no extra ingredients .
+                              If any of the available ingredients require caution (such as honey for children under 1 year old), you must explicitly include a caution message in the steps, clearly noting why the ingredient should be avoided or used with care. 
+                              For example: 'Caution: Honey should not be given to children under 1 year old due to the risk of botulism.'
+                              Example: 
+                                   - Step 1: Mix warm water with honey.
+                                   - Step 2: Add lemon juice and stir well.
+                                   - Step 3: Drink slowly to soothe the throat.
+                                   - **Step 4 (Caution)**: Honey should not be given to children under 1 year old due to the risk of botulism.
 
-                      Pay special attention to spices and any ingredient that can be an irritant. Always explicitly include a caution message as the **LAST step** for any ingredient that can cause throat or lung irritation.
-                                      Pay special attention to spices, and any ingredient that can be an irritant. Always  explicitly include a caution message as the  step  for any ingredient that can cause irritations to the throat, or lungs of a child .
-                                      If no remedy can be made with the remaining ingredients, state 'No remedy possible with available ingredients.'
-                                      Format your response as a JSON dictionary with the following structure:
+                             Pay special attention to spices and any ingredient that can be an irritant. Always explicitly include a caution message as the **LAST step** for any ingredient that can cause throat or lung irritation. 
+                             Format your response as a JSON dictionary with the following structure:
                                           {
-                  "remedy_name": "Name of the remedy",
-                  "steps": ["Step 1: Do this", "Step 2: Do that"]
-                }
-                                           If no remedy is possible with the available ingredients, return the string "No remedy possible with available ingredients." and nothing else.
-                                           Ensure the response is valid JSON, unless no remedy is possible.
+                                            "remedy_name": "Name of the remedy",
+                                             "steps": ["Step 1: Do this", "Step 2: Do that"]
+                                           }
+                             If no remedy is possible with the available ingredients, return the string "No remedy possible with available ingredients." and nothing else.
+                             Ensure the response is valid JSON, unless no remedy is possible.
                                            """
-                
+
             },
             {
                 "role": "user",
@@ -114,10 +115,10 @@ def generate_remedy_instructions(symptom: str, available_ingredients: list, alle
                 {
                     "role": "system",
                     "content": """You are a helpful assistant specializing in suggesting minimum grocery items for common children's symptoms.
-                                              Given a symptom, provide a short list of the most essential items to purchase to create home remedies.
-                                              Focus on basic, widely available ingredients.
-                                              Respond in a simple, comma-separated list format.
-                                              Example: "Honey, Lemon, Ginger"""
+                                  Given a symptom, provide a short list of the most essential items to purchase to create home remedies.
+                                  Focus on basic, widely available ingredients.
+                                  Respond in a simple, comma-separated list format.
+                                  Example: "Honey, Lemon, Ginger"""
                 },
                 {
                     "role": "user",
@@ -145,8 +146,8 @@ def generate_remedy_instructions(symptom: str, available_ingredients: list, alle
 
 def main():
     symptom = "a cough"
-    ingredients = [""]
-    allergies = [""]
+    ingredients = ["cinnamon"]
+    allergies = ["cinnamon"]
 
     remedy = generate_remedy_instructions(symptom, ingredients, allergies)
     print(remedy)

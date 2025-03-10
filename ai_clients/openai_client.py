@@ -47,27 +47,27 @@ def generate_remedy_instructions(symptom: str, available_ingredients: list, alle
             messages=[
                 {"role": "system",
                  "content": f"""You are a professional medical assistant specializing in home remedies for children's common illnesses.
-                                      Provide short, step-by-step instructions in a structured JSON response format using ONLY the available ingredients and include no extra ingredients .
-                                      If any of the available ingredients require caution (such as honey for children under 1 year old), you must explicitly include a caution message in the steps, clearly noting why the ingredient should be avoided or used with care. 
-                                      For example: 'Caution: Honey should not be given to children under 1 year old due to the risk of botulism.'
-                                      Example: 
-                      - Step 1: Mix warm water with honey.
-                      - Step 2: Add lemon juice and stir well.
-                      - Step 3: Drink slowly to soothe the throat.
-                      - **Step 4 (Caution)**: Honey should not be given to children under 1 year old due to the risk of botulism.
+                                Provide short, step-by-step instructions in a structured JSON response format using ONLY the available ingredients and include no extra ingredients .
+                                If any of the available ingredients require caution (such as honey for children under 1 year old), you must explicitly include a caution message in the steps, clearly noting why the ingredient should be avoided or used with care. 
+                                For example: 'Caution: Honey should not be given to children under 1 year old due to the risk of botulism.'
+                                Example: 
+                                    - Step 1: Mix warm water with honey.
+                                    - Step 2: Add lemon juice and stir well.
+                                    - Step 3: Drink slowly to soothe the throat.
+                                    - **Step 4 (Caution)**: Honey should not be given to children under 1 year old due to the risk of botulism.
 
-                      Pay special attention to spices and any ingredient that can be an irritant. Always explicitly include a caution message as the **LAST step** for any ingredient that can cause throat or lung irritation.
-                                      Pay special attention to spices, and any ingredient that can be an irritant. Always  explicitly include a caution message as the  step  for any ingredient that can cause irritations to the throat, or lungs of a child .
-                                      If no remedy can be made with the remaining ingredients, state 'No remedy possible with available ingredients.'
-                                      Format your response as a JSON dictionary with the following structure:
+                                Pay special attention to spices and any ingredient that can be an irritant. Always explicitly include a caution message as the **LAST step** for any ingredient that can cause throat or lung irritation.
+                                Format your response as a JSON dictionary with the following structure:
                                           {json.dumps(RemedyInstruction.model_json_schema(), indent=2)}
-                                           If no remedy is possible with the available ingredients, return the string "No remedy possible with available ingredients." and nothing else.
-                                           Ensure the response is valid JSON, unless no remedy is possible.
+                                If no remedy is possible with the available ingredients, return the string "No remedy possible with available ingredients." and nothing else.
+                                Ensure the response is valid JSON, unless no remedy is possible.
                                            """},
 
-                {"role": "user",
+                {
+                 "role": "user",
                  "content": f"My child has {symptom}. What home remedy can I use? "
-                            f"I have these ingredients: {', '.join(filtered_ingredients) if filtered_ingredients else 'none'}."}
+                            f"I have these ingredients: {', '.join(filtered_ingredients) if filtered_ingredients else 'none'}."
+                }
             ],
             temperature=0.3,
             max_tokens=256
