@@ -1,6 +1,6 @@
 # 🌿 HomeCure-Kids-App 🏡👶
 
-![HomeCure Logo]
+
 <img src="images/logo.webp" alt="Alt text" width="300">
 
 ## 📝 Description
