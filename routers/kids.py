@@ -128,8 +128,17 @@ async def update_kidsprofile(kid_id: int, kid: KidsProfile,
             update_values.append(kid.weight)
         if kid.allergies != "string":
             print("inside kids_allergies")
+            cursor.execute("SELECT allergies from kids_profile where id = %s and parent_id = %s", (kid_id, parent_id))
+            row = cursor.fetchone()
+            print(row)
+            print("given value",kid.allergies)
+            if row and row['allergies']:  # If allergies exist
+                print("inside exit-----------")
+                updated_allergies = row['allergies'] + ',' + kid.allergies
+            else:  # If no allergies exist
+                updated_allergies = kid.allergies
             update_fields.append("allergies = %s")
-            update_values.append(kid.allergies)
+            update_values.append(updated_allergies)
 
         # If there are no fields to update, raise an exception
         if not update_fields:

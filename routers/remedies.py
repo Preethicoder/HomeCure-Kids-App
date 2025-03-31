@@ -108,7 +108,13 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
             return remedy_instructions
         else:
             # Generate AI remedy instructions
-            remedy_instructions = generate_remedy_instructions(symptom, ingredients_list)
+            cursor.execute("SELECT allergies from kids_profile where id = %s and parent_id = %s", (kid_id, parent_id))
+            row = cursor.fetchone()
+
+            allergies_string = row['allergies']
+            allergies_list = allergies_string.split(',')
+            print(allergies_list)
+            remedy_instructions = generate_remedy_instructions(symptom, ingredients_list,allergies_list)
             print("remedy_instructions",remedy_instructions)
             ##remedy_instructions = remedy_instructions.replace("\n", " ")
         if hasattr(remedy_instructions, 'remedy_name') and hasattr(remedy_instructions,
@@ -139,7 +145,19 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
         }
         else:
             if isinstance(remedy_instructions, str):
-                return {
+               insert_query = """
+                                INSERT INTO remedy_shopping_list (kid_id, parent_id, symptom,ingredients_to_buy)
+                                 VALUES (%s, %s, %s, %s)
+                                 """
+               cursor.execute(insert_query, (
+                    kid_id,
+                    parent_id,
+                    symptom,
+                    json.dumps(remedy_instructions)
+
+                ))
+               conn.commit()
+               return {
                     "kid_id": kid_id,
                     "symptom": symptom,
                     "Ingreidents_to_Buy": remedy_instructions}
@@ -197,7 +215,7 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
         print(f"  Kid ID: {kid_id}")
         print(f"  Symptom: {symptom}")
         print(f"  Ingredients: {ingredients_list}")
-        remedy_instructions = gemini_client.generate_remedy_instructions(symptom, ingredients_list)
+        remedy_instructions = gemini_client.generate_remedy_instructions(symptom, ingredients_list,["peanut"])
         print("remedy_instructions",remedy_instructions)
             ##remedy_instructions = remedy_instructions.replace("\n", " ")
         if hasattr(remedy_instructions, 'remedy_name') and hasattr(remedy_instructions,
@@ -208,6 +226,7 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
                 print("returned::::",remedy_instructions)
 
                 return {
+
             "kid_id": kid_id,
             "symptom": symptom,
             "ingredients": ingredients_list,
@@ -217,6 +236,7 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
         else:
             if isinstance(remedy_instructions, str):
                 return {
+                    "parent_id":parent_id,
                     "kid_id": kid_id,
                     "symptom": symptom,
                     "Ingreidents_to_Buy": remedy_instructions}
@@ -226,6 +246,7 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
     finally:
         cursor.close()
         conn.close()
+
 
 @router.get("/get_kitchen_remedy/groq_client/{kid_id}")
 async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)):
@@ -253,9 +274,11 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
             """
     conn = get_db_connection()
     cursor = conn.cursor()
+    parent_id = current_user["id"]
+    symptom = ""
     try:
 
-        parent_id = current_user["id"]
+
         cursor.execute("SELECT symptom_name FROM kids_profile WHERE id = %s and parent_id = %s", (kid_id, parent_id))
         kid_symptom = cursor.fetchone()
 
@@ -294,7 +317,9 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
             }
         else:
             if isinstance(remedy_instructions, str):
+
                 return {
+                    "parent_id":parent_id,
                     "kid_id": kid_id,
                     "symptom": symptom,
                     "Ingreidents_to_Buy": remedy_instructions}
@@ -304,3 +329,5 @@ async def get_remedy(kid_id: int, current_user: dict = Depends(get_current_user)
     finally:
         cursor.close()
         conn.close()
+
+

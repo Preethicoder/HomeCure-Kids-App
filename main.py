@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from config import templates
 from database.database import init_db
-from routers import kids, ingredients, symptoms, authorisation, remedies
+from routers import kids, ingredients, symptoms, authorisation, remedies, shoppinglists
 from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
@@ -52,6 +52,7 @@ app.include_router(kids.router)
 app.include_router(ingredients.router)
 app.include_router(symptoms.router)
 app.include_router(remedies.router)
+app.include_router(shoppinglists.router)
 @app.get("/")
 async def home(request: Request):
     """
@@ -61,3 +62,5 @@ async def home(request: Request):
             dict: A simple welcome message.
         """
     return templates.TemplateResponse("auth.html", {"request": request})
+
+

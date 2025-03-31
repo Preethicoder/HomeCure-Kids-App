@@ -98,6 +98,17 @@ def init_db():
         );
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS remedy_shopping_list (
+        id SERIAL PRIMARY KEY,
+        kid_id INTEGER NOT NULL REFERENCES kids_profile(id),
+        parent_id INTEGER NOT NULL REFERENCES users(id),
+        symptom TEXT NOT NULL,
+        ingredients_to_buy JSON NOT NULL
+        );
+        
+    """)
+
 
 
 

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from config import templates
 from database.database import get_db_connection
 from database.models import User, LoginUser
 from auth import hash_password, verify_password
